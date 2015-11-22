@@ -1,0 +1,11 @@
+---
+title: "Code Book for Summarised Human Activity Reaction data set"
+author: "Marlan Perumal"
+date: "22 November 2015"
+output: 
+    html_document:
+        keep_md: true
+---
+
+The Data comes from a study using Samsung Galaxy S II smartphones to track the activity of 30 volunteers by using the phone's built in accelerometer and gyroscope. In each case the subject, activity and sensor readings were recorded over a period of time. More information is available at http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
+
