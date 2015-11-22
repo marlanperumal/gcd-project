@@ -7,8 +7,8 @@ output:
         keep_md: true
 ---
 
-Data Description
-================
+## Data Description
+
 The Data comes from a study using Samsung Galaxy S II smartphones to track the activity of 30 volunteers by using the phone's built in accelerometer and gyroscope. In each case the subject, activity and sensor readings were recorded over a period of time. The data is split between a training and test dta sets. More information is available at http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
 
 The data has the following file structure:
@@ -21,8 +21,7 @@ The data has the following file structure:
     + **X_TTT.txt**: measureents
     + **y_TTT.txt**: activity id
 
-Loading and Manipulation of Data
-================================
+## Loading and Manipulation of Data
 
 The data are loaded and manipulated as follows:
 
@@ -109,8 +108,7 @@ Finally the summary table is written to file.
 write.table(summ.table,file="summary-table.txt",row.names=FALSE)
 ```
 
-Output file description
-=======================
+## Output file description
 
 - The *subject* column holds the subject id's from 1 to 30.
 - The *activity* column gives the current activity for each observation being one of `r paste(as.character(activityLabels$activity),collapse=", ")`

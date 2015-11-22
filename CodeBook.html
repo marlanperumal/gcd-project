@@ -68,8 +68,8 @@ img {
 </div>
 
 
-<div id="data-description" class="section level1">
-<h1>Data Description</h1>
+<div id="data-description" class="section level2">
+<h2>Data Description</h2>
 <p>The Data comes from a study using Samsung Galaxy S II smartphones to track the activity of 30 volunteers by using the phone’s built in accelerometer and gyroscope. In each case the subject, activity and sensor readings were recorded over a period of time. The data is split between a training and test dta sets. More information is available at <a href="http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones" class="uri">http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones</a></p>
 <p>The data has the following file structure:</p>
 <ul>
@@ -84,8 +84,8 @@ img {
 </ul></li>
 </ul>
 </div>
-<div id="loading-and-manipulation-of-data" class="section level1">
-<h1>Loading and Manipulation of Data</h1>
+<div id="loading-and-manipulation-of-data" class="section level2">
+<h2>Loading and Manipulation of Data</h2>
 <p>The data are loaded and manipulated as follows:</p>
 <p>Fist the <em>dplyr</em> package is loaded</p>
 <pre class="r"><code>require(dplyr)</code></pre>
@@ -141,8 +141,8 @@ summ.table &lt;- summarise_each(group_by(all.data2,subject,activity),funs(mean))
 <pre class="r"><code># write summary table to file
 write.table(summ.table,file=&quot;summary-table.txt&quot;,row.names=FALSE)</code></pre>
 </div>
-<div id="output-file-description" class="section level1">
-<h1>Output file description</h1>
+<div id="output-file-description" class="section level2">
+<h2>Output file description</h2>
 <ul>
 <li>The <em>subject</em> column holds the subject id’s from 1 to 30.</li>
 <li>The <em>activity</em> column gives the current activity for each observation being one of WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING</li>
