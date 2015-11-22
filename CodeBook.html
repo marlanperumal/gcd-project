@@ -68,7 +68,97 @@ img {
 </div>
 
 
-<p>The Data comes from a study using Samsung Galaxy S II smartphones to track the activity of 30 volunteers by using the phone’s built in accelerometer and gyroscope. In each case the subject, activity and sensor readings were recorded over a period of time. More information is available at <a href="http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones" class="uri">http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones</a></p>
+<div id="data-description" class="section level1">
+<h1>Data Description</h1>
+<p>The Data comes from a study using Samsung Galaxy S II smartphones to track the activity of 30 volunteers by using the phone’s built in accelerometer and gyroscope. In each case the subject, activity and sensor readings were recorded over a period of time. The data is split between a training and test dta sets. More information is available at <a href="http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones" class="uri">http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones</a></p>
+<p>The data has the following file structure:</p>
+<ul>
+<li><strong>features_info.txt</strong>: contains a description of all the measured variables<br /></li>
+<li><strong>features.txt</strong>: a two column data file containing an index and the descriptive names for each of the measurements in the order they appear in the data files<br /></li>
+<li><strong>activity_labels.txt</strong>: a two column data file containing an index and the descriptive names for each of the activity factor levels<br /></li>
+<li>Folders <strong>training</strong> and <strong>test</strong> containing the actual data for the training and test data sets respectively. The files below contain corresponding data for each observation (where TTT is either training or test as appropriate).
+<ul>
+<li><strong>subject_TTT.txt</strong>: subject ids</li>
+<li><strong>X_TTT.txt</strong>: measureents</li>
+<li><strong>y_TTT.txt</strong>: activity id</li>
+</ul></li>
+</ul>
+</div>
+<div id="loading-and-manipulation-of-data" class="section level1">
+<h1>Loading and Manipulation of Data</h1>
+<p>The data are loaded and manipulated as follows:</p>
+<p>Fist the <em>dplyr</em> package is loaded</p>
+<pre class="r"><code>require(dplyr)</code></pre>
+<p>If the data is not already contained in the working directory it is downloaded from the source, and unzipped.</p>
+<pre class="r"><code>url.src &lt;- &quot;https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip&quot;
+dataFileZipName &lt;- &quot;UCI-HAR-Dataset.zip&quot;
+dataFolderName &lt;- &quot;UCI\ HAR\ Dataset&quot;
+
+# download data set if it doesn't exist
+if (!file.exists(dataFileZipName)) {
+    download.file(url = url.src, destfile = dataFileZipName, method = &quot;curl&quot;)
+}
+
+# unzip data if it doesn't exist
+if (!file.exists(dataFolderName)){
+    unzip(dataFileZipName)
+}</code></pre>
+<p>The activity and feature labels are read in from their respective files</p>
+<pre class="r"><code># read in activity and feature labels
+activityLabels &lt;- read.table(paste(dataFolderName,&quot;activity_labels.txt&quot;,sep=&quot;/&quot;),col.names = c(&quot;id&quot;,&quot;activity&quot;))
+featureLabels &lt;- read.table(paste(dataFolderName,&quot;features.txt&quot;,sep=&quot;/&quot;),col.names = c(&quot;id&quot;,&quot;feature&quot;))</code></pre>
+<p>The training and test data are read in from the 3 files containing respectively the subject id, measured data and activity.</p>
+<pre class="r"><code>#read in training data
+subject.train &lt;- read.table(paste(dataFolderName,&quot;train&quot;,&quot;subject_train.txt&quot;,sep=&quot;/&quot;))
+data.train &lt;- read.table(paste(dataFolderName,&quot;train&quot;,&quot;X_train.txt&quot;,sep=&quot;/&quot;))
+activity.train &lt;- read.table(paste(dataFolderName,&quot;train&quot;,&quot;y_train.txt&quot;,sep=&quot;/&quot;))
+
+# read in test data
+subject.test &lt;- read.table(paste(dataFolderName,&quot;test&quot;,&quot;subject_test.txt&quot;,sep=&quot;/&quot;))
+data.test &lt;- read.table(paste(dataFolderName,&quot;test&quot;,&quot;X_test.txt&quot;,sep=&quot;/&quot;))
+activity.test &lt;- read.table(paste(dataFolderName,&quot;test&quot;,&quot;y_test.txt&quot;,sep=&quot;/&quot;))</code></pre>
+<p>These are all compiled into a single data frame, with column headings for the measurements coming from the previously read feature labels.</p>
+<pre class="r"><code># compile all training data into a single data frame    
+train.data &lt;- data.frame(subject.train,activity.train,data.train)
+names(train.data) &lt;- c(&quot;subject&quot;,&quot;activity&quot;,as.character(featureLabels[,2]))
+
+# compile all test data into a single data frame    
+test.data &lt;- data.frame(subject.test,activity.test,data.test)
+names(test.data) &lt;- c(&quot;subject&quot;,&quot;activity&quot;,as.character(featureLabels[,2]))</code></pre>
+<p>The training and test data are stacked.</p>
+<pre class="r"><code># join training and test data
+all.data &lt;- rbind(train.data,test.data)</code></pre>
+<p>The <em>grep</em> command is used to find all the measurements with <strong>mean</strong> or <strong>std</strong> in their names, and a new data frame is compiled with just the subject, activity and these measurement mean and standard deviations.</p>
+<pre class="r"><code># extract only mean and standard deviation for each measurement
+all.data2 &lt;- all.data[,c(1,2,grep(&quot;(mean|std)\\(\\)&quot;,names(all.data)))]</code></pre>
+<p>The coded activities are then replaced with the actual acitivity names</p>
+<pre class="r"><code># replace activity numbers with their descriptive name
+all.data2$activity &lt;- activityLabels[all.data2$activity,2]</code></pre>
+<p>The <em>summarise_each</em> function from the <em>dplyr</em> library is used to extract the means of each of the measurement columns for each subject/activity combination.</p>
+<pre class="r"><code># compile sumary table with averages for each column
+summ.table &lt;- summarise_each(group_by(all.data2,subject,activity),funs(mean))</code></pre>
+<p>Finally the summary table is written to file.</p>
+<pre class="r"><code># write summary table to file
+write.table(summ.table,file=&quot;summary-table.txt&quot;,row.names=FALSE)</code></pre>
+</div>
+<div id="output-file-description" class="section level1">
+<h1>Output file description</h1>
+<ul>
+<li>The <em>subject</em> column holds the subject id’s from 1 to 30.</li>
+<li>The <em>activity</em> column gives the current activity for each observation being one of WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING</li>
+<li>The remaining columns give the avearge of the mean and standard deviations of each of the measurements. A description of each measurement is given in the <em>features_info.txt</em> file in the data set and is reproduced below</li>
+</ul>
+<p>The features selected for this database come from the accelerometer and gyroscope 3-axial raw signals tAcc-XYZ and tGyro-XYZ. These time domain signals (prefix ‘t’ to denote time) were captured at a constant rate of 50 Hz. Then they were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise. Similarly, the acceleration signal was then separated into body and gravity acceleration signals (tBodyAcc-XYZ and tGravityAcc-XYZ) using another low pass Butterworth filter with a corner frequency of 0.3 Hz.</p>
+<p>Subsequently, the body linear acceleration and angular velocity were derived in time to obtain Jerk signals (tBodyAccJerk-XYZ and tBodyGyroJerk-XYZ). Also the magnitude of these three-dimensional signals were calculated using the Euclidean norm (tBodyAccMag, tGravityAccMag, tBodyAccJerkMag, tBodyGyroMag, tBodyGyroJerkMag).</p>
+<p>Finally a Fast Fourier Transform (FFT) was applied to some of these signals producing fBodyAcc-XYZ, fBodyAccJerk-XYZ, fBodyGyro-XYZ, fBodyAccJerkMag, fBodyGyroMag, fBodyGyroJerkMag. (Note the ‘f’ to indicate frequency domain signals).</p>
+<p>These signals were used to estimate variables of the feature vector for each pattern:<br />‘-XYZ’ is used to denote 3-axial signals in the X, Y and Z directions.</p>
+<p>tBodyAcc-XYZ<br />tGravityAcc-XYZ<br />tBodyAccJerk-XYZ<br />tBodyGyro-XYZ<br />tBodyGyroJerk-XYZ<br />tBodyAccMag<br />tGravityAccMag<br />tBodyAccJerkMag<br />tBodyGyroMag<br />tBodyGyroJerkMag<br />fBodyAcc-XYZ<br />fBodyAccJerk-XYZ<br />fBodyGyro-XYZ<br />fBodyAccMag<br />fBodyAccJerkMag<br />fBodyGyroMag<br />fBodyGyroJerkMag</p>
+<p>The set of variables that were estimated from these signals are:</p>
+<p>mean(): Mean value<br />std(): Standard deviation<br />mad(): Median absolute deviation<br />max(): Largest value in array<br />min(): Smallest value in array<br />sma(): Signal magnitude area<br />energy(): Energy measure. Sum of the squares divided by the number of values.<br />iqr(): Interquartile range<br />entropy(): Signal entropy<br />arCoeff(): Autorregresion coefficients with Burg order equal to 4<br />correlation(): correlation coefficient between two signals<br />maxInds(): index of the frequency component with largest magnitude<br />meanFreq(): Weighted average of the frequency components to obtain a mean frequency skewness(): skewness of the frequency domain signal<br />kurtosis(): kurtosis of the frequency domain signal<br />bandsEnergy(): Energy of a frequency interval within the 64 bins of the FFT of each window.<br />angle(): Angle between to vectors.</p>
+<p>Additional vectors obtained by averaging the signals in a signal window sample. These are used on the angle() variable:</p>
+<p>gravityMean<br />tBodyAccMean<br />tBodyAccJerkMean<br />tBodyGyroMean<br />tBodyGyroJerkMean</p>
+<p>The complete list of variables of each feature vector is available in ‘features.txt’</p>
+</div>
 
 
 </div>
